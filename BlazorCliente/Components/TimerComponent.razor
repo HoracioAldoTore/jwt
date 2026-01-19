@@ -1,0 +1,34 @@
+﻿@implements IDisposable
+@*using System.Threading*@
+@using System.Timers
+
+<p>Tiempo transcurrido: @(_elapsedTime.ToString(@"hh\:mm\:ss"))</p>
+
+@code {
+    private TimeSpan _elapsedTime = TimeSpan.Zero;
+    private Timer? _timer;
+
+    // This method is called when the component is initialized
+    protected override void OnInitialized()
+    {
+        // Set up the timer to tick every second (1000 milliseconds)
+        _timer = new Timer(1000);
+        _timer.Elapsed += OnTimerElapsed;
+        _timer.AutoReset = true; // Timer will repeatedly raise the Elapsed event
+        _timer.Start();
+    }
+
+    // Event handler for the timer's Elapsed event
+    private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        _elapsedTime = _elapsedTime.Add(TimeSpan.FromSeconds(1));
+        // Crucial: Call InvokeAsync to marshal the UI update to Blazor's render thread
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Implement IDisposable to clean up the timer when the component is removed
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

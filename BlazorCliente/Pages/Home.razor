@@ -1,0 +1,94 @@
+﻿@page "/"
+@using System.Text.Json
+@using System.Text
+@using System.Net.Http.Headers
+
+<TimerComponent/>
+
+<button class="btn btn-primary" @onclick="Login">
+    Token
+</button><br />
+<textarea @bind="_Token" rows="6" cols="60" placeholder="Enter text here..."></textarea>
+<br />
+<button class="btn btn-primary" @onclick="TiposDeClima">
+    TiposDeClima
+</button>
+<button class="btn btn-primary" @onclick="TemperaturaActual">
+    TemperaturaActual
+</button>
+<button class="btn btn-primary" @onclick="PronosticoDelTiempo">
+    PronosticoDelTiempo
+</button>
+<br />
+<textarea @bind="_Respuesta" rows="18" cols="60" placeholder="Enter text here..." disabled></textarea>
+
+@code{
+    //JSON Web Token (JWT)
+    private string _Token { set; get; }
+    
+    private string _Respuesta { set; get; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _Token = await WebService.Login();
+
+        List<string> climas = await WebService.TiposDeClima(_Token);
+        int temperatura = await WebService.TemperaturaActual(_Token);
+        List<WeatherForecast> pronostico = await WebService.PronosticoDelTiempo(_Token);
+
+        await base.OnInitializedAsync();
+
+        return;
+    }
+
+    private async Task PronosticoDelTiempo()
+    {
+        try
+        {            
+            var resWebService = await WebService.PronosticoDelTiempo(_Token);
+            _Respuesta = JsonSerializer.Serialize(resWebService);
+        }
+        catch(Exception error)
+        {
+            _Respuesta = error.Message;
+        }
+    }
+
+    private async Task TiposDeClima()
+    {
+        try
+        {
+            var resWebService = await WebService.TiposDeClima(_Token);
+            _Respuesta = JsonSerializer.Serialize(resWebService);
+        }
+        catch (Exception error)
+        {
+            _Respuesta = error.Message;
+        }
+    }
+
+    private async Task TemperaturaActual()
+    {
+        try
+        {
+            var resWebService = await WebService.TemperaturaActual(_Token);
+            _Respuesta = JsonSerializer.Serialize(resWebService);
+        }
+        catch (Exception error)
+        {
+            _Respuesta = error.Message;
+        }
+    }
+
+    private async Task Login()
+    {
+        try
+        {
+            _Token = await WebService.Login();            
+        }
+        catch (Exception error)
+        {
+            _Token = error.Message;
+        }
+    }
+}
